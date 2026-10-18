@@ -6,7 +6,7 @@ export const swaggerSpec = {
     description: 'REST API for discovering nearby sports partners, coordinating play sessions, managing communities, and admin monitoring.',
   },
   servers: [
-    { url: 'http://localhost:5000/api/v1', description: 'Local Development Server' },
+    { url: '/api/v1', description: 'PlayNear REST API v1' },
   ],
   components: {
     securitySchemes: {

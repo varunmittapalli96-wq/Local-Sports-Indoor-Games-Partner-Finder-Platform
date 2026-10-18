@@ -1,4 +1,10 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+const getApiBaseUrl = (): string => {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (envUrl) {
+    return envUrl.replace(/\/+$/, '');
+  }
+  return 'http://localhost:5000/api/v1';
+};
 
 export class ApiError extends Error {
   statusCode: number;
@@ -16,7 +22,9 @@ export const apiFetch = async <T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> => {
-  const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+  const baseUrl = getApiBaseUrl();
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = endpoint.startsWith('http') ? endpoint : `${baseUrl}${cleanEndpoint}`;
 
   const defaultHeaders: HeadersInit = {
     'Content-Type': 'application/json',
@@ -24,7 +32,7 @@ export const apiFetch = async <T = any>(
 
   const config: RequestInit = {
     ...options,
-    credentials: 'include', // Include httpOnly cookies across local domains
+    credentials: 'include', // Include httpOnly cross-origin cookies in both dev and production
     headers: {
       ...defaultHeaders,
       ...options.headers,

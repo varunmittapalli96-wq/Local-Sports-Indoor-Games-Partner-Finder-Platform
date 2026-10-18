@@ -2,22 +2,24 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import http from 'http';
+import { validateEnv } from './config/env';
 import { createApp } from './app';
 import { connectDB, disconnectDB } from './config/db';
 import { sweepExpiredRequests } from './controllers/requestController';
 import { initSocket } from './services/socketService';
-import { User } from './models/User';
-
-const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
-  try {
-    await connectDB();
+  // Validate required environment variables immediately on startup
+  const env = validateEnv();
 
-    // Initial sweep of expired requests
+  try {
+    // Connect to MongoDB Atlas or local MongoDB
+    await connectDB(env.MONGODB_URI);
+
+    // Initial sweep of expired play requests
     await sweepExpiredRequests();
 
-    // Schedule periodic sweep every 5 minutes
+    // Schedule periodic sweep every 5 minutes (kept running in background)
     const sweepInterval = setInterval(async () => {
       try {
         await sweepExpiredRequests();
@@ -32,13 +34,14 @@ const startServer = async () => {
     // Initialize Socket.IO Real-time Engine
     initSocket(server);
 
-    server.listen(PORT, () => {
+    // Listen on process.env.PORT (fallback 5000), host 0.0.0.0
+    server.listen(env.PORT, env.HOST, () => {
       console.log(`====================================================`);
-      console.log(` PlayNear API & Real-Time Server running on port ${PORT}`);
-      console.log(` Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(` WebSockets:  Socket.IO active on ws://localhost:${PORT}`);
-      console.log(` API Docs:    http://localhost:${PORT}/api/docs`);
-      console.log(` Health:      http://localhost:${PORT}/api/health`);
+      console.log(` PlayNear API Server active on http://${env.HOST}:${env.PORT}`);
+      console.log(` Environment:  ${env.NODE_ENV}`);
+      console.log(` Allowed CORS: ${env.CLIENT_ORIGINS.join(', ')}`);
+      console.log(` Health Check: http://${env.HOST}:${env.PORT}/health`);
+      console.log(` Swagger Docs: http://${env.HOST}:${env.PORT}/api/docs`);
       console.log(`====================================================`);
     });
 

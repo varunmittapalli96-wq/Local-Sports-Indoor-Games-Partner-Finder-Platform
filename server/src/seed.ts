@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
+import readline from 'readline';
 import { connectDB, disconnectDB } from './config/db';
 import { User } from './models/User';
 import { Game } from './models/Game';
@@ -10,6 +11,44 @@ import { PlayRequest } from './models/PlayRequest';
 import { OpenPlayPost } from './models/OpenPlayPost';
 import { RecurringSession } from './models/RecurringSession';
 import { ActivityLog } from './models/ActivityLog';
+
+const confirmExecution = async (): Promise<boolean> => {
+  if (process.env.CONFIRM_SEED === 'true' || process.env.FORCE_SEED === 'yes') {
+    return true;
+  }
+
+  const uri = process.env.MONGODB_URI || 'local database';
+  const sanitizedUri = uri.replace(/\/\/.*@/, '//<credentials>@');
+
+  if (!process.stdin.isTTY) {
+    console.error('');
+    console.error('================================================================================');
+    console.error('⚠️  AUTOMATED SEED ABORTED');
+    console.error('================================================================================');
+    console.error(`Target database: ${sanitizedUri}`);
+    console.error('Seeding is destructive and deletes existing records.');
+    console.error('To proceed in automated/CI environments, explicitly pass: CONFIRM_SEED=true');
+    console.error('================================================================================');
+    console.error('');
+    return false;
+  }
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  return new Promise((resolve) => {
+    rl.question(
+      `\n⚠️  WARNING: Running seed will clear collections and populate with demo data at:\n   ${sanitizedUri}\n\nAre you sure you want to proceed? (yes/N): `,
+      (answer) => {
+        rl.close();
+        const trimmed = answer.trim().toLowerCase();
+        resolve(trimmed === 'y' || trimmed === 'yes');
+      }
+    );
+  });
+};
 
 export const seedDatabase = async () => {
   console.log('--- Starting PlayNear Database Seed ---');
@@ -30,7 +69,9 @@ export const seedDatabase = async () => {
   ]);
 
   const defaultPasswordHash = await bcrypt.hash('UserPass123!', 10);
-  const adminPasswordHash = await bcrypt.hash('AdminPass123!', 10);
+  const adminEmail = process.env.ADMIN_EMAIL?.trim() || 'admin@playnear.com';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'AdminPass123!';
+  const adminPasswordHash = await bcrypt.hash(adminPassword, 10);
   const orgPasswordHash = await bcrypt.hash('OrgPass123!', 10);
 
   // 1. Seed 10 Games (Indoor & Outdoor)
@@ -61,10 +102,10 @@ export const seedDatabase = async () => {
   const jitterCoord = (base: number) => base + (Math.random() - 0.5) * 0.015;
 
   // 3. Create Admin Account
-  console.log('[Seed] Creating Admin Account...');
+  console.log(`[Seed] Creating Admin Account (${adminEmail})...`);
   const adminUser = await User.create({
     name: 'PlayNear Admin',
-    email: 'admin@playnear.com',
+    email: adminEmail,
     passwordHash: adminPasswordHash,
     role: 'admin',
     gender: 'prefer-not-to-say',
@@ -72,7 +113,7 @@ export const seedDatabase = async () => {
     locality: 'Indiranagar',
     location: { type: 'Point', coordinates: [77.6408, 12.9784] },
     contactPreference: 'email',
-    contactValue: 'admin@playnear.com',
+    contactValue: adminEmail,
     playingLocations: ['clubhouse', 'ground'],
     primaryVenue: 'Indiranagar Club',
     emailVerified: true,
@@ -387,8 +428,8 @@ export const seedDatabase = async () => {
   ]);
 
   console.log('--- PlayNear Database Seed Completed Successfully ---');
-  console.log('Demo Credentials:');
-  console.log('  Admin:     admin@playnear.com / AdminPass123!');
+  console.log('Credentials:');
+  console.log(`  Admin:     ${adminEmail} / ${process.env.ADMIN_PASSWORD ? '******** (configured via ADMIN_PASSWORD)' : 'AdminPass123!'}`);
   console.log('  Organizer: organizer@playnear.com / OrgPass123!');
   console.log('  User:      user1@playnear.com / UserPass123! (up to user30@playnear.com)');
   console.log('----------------------------------------------------');
@@ -396,14 +437,20 @@ export const seedDatabase = async () => {
 
 // If run directly via CLI
 if (require.main === module) {
-  seedDatabase()
-    .then(async () => {
+  (async () => {
+    const proceed = await confirmExecution();
+    if (!proceed) {
+      console.log('[Seed] Database seed cancelled. No changes were made.');
+      process.exit(0);
+    }
+    try {
+      await seedDatabase();
       await disconnectDB();
       process.exit(0);
-    })
-    .catch(async (err) => {
+    } catch (err) {
       console.error('[Seed Error]:', err);
       await disconnectDB();
       process.exit(1);
-    });
+    }
+  })();
 }
