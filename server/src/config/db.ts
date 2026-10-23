@@ -29,6 +29,7 @@ export const connectDB = async (customUri?: string): Promise<typeof mongoose> =>
   // In development or test, fall back gracefully to MongoMemoryServer
   console.log('[Database] Starting in-memory MongoDB server for zero-config local operation...');
   try {
+    // @ts-ignore - mongodb-memory-server is a dev-only fallback; this line is never reached in production
     const { MongoMemoryServer } = await import('mongodb-memory-server');
     if (!mongoMemoryServer) {
       mongoMemoryServer = await MongoMemoryServer.create();
