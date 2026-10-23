@@ -85,7 +85,10 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
     const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || rawApiUrl.replace(/\/api\/v1\/?$/, '');
 
+    const token = typeof window !== 'undefined' ? localStorage.getItem('playnear_token') : undefined;
+
     const newSocket = io(socketUrl, {
+      auth: { token },
       withCredentials: true,
       transports: ['websocket', 'polling'],
       reconnectionAttempts: 10,

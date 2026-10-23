@@ -66,22 +66,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [refreshUser]);
 
   const login = async (email: string, password: string) => {
-    const res = await apiFetch<{ success: boolean; user: UserProfile }>('/auth/login', {
+    const res = await apiFetch<{ success: boolean; user: UserProfile; token?: string }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
     if (res.success && res.user) {
+      if (res.token && typeof window !== 'undefined') {
+        localStorage.setItem('playnear_token', res.token);
+      }
       setUser(res.user);
       await refreshUser(); // Load full profile including games & availability
     }
   };
 
   const register = async (data: any) => {
-    const res = await apiFetch<{ success: boolean; user: UserProfile }>('/auth/register', {
+    const res = await apiFetch<{ success: boolean; user: UserProfile; token?: string }>('/auth/register', {
       method: 'POST',
       body: JSON.stringify(data),
     });
     if (res.success && res.user) {
+      if (res.token && typeof window !== 'undefined') {
+        localStorage.setItem('playnear_token', res.token);
+      }
       setUser(res.user);
       await refreshUser();
     }
@@ -91,6 +97,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await apiFetch('/auth/logout', { method: 'POST' });
     } finally {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('playnear_token');
+      }
       setUser(null);
     }
   };

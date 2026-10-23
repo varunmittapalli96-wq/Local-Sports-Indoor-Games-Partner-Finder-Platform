@@ -26,23 +26,21 @@ export const initSocket = (httpServer: HttpServer): SocketIOServer => {
     .map((url) => url.trim().replace(/\/+$/, ''))
     .filter(Boolean);
 
-  if (process.env.NODE_ENV !== 'production') {
-    if (!allowedOrigins.includes('http://localhost:3000')) allowedOrigins.push('http://localhost:3000');
-    if (!allowedOrigins.includes('http://127.0.0.1:3000')) allowedOrigins.push('http://127.0.0.1:3000');
-  }
+  const isAllowedOrigin = (origin: string): boolean => {
+    const normalized = origin.replace(/\/+$/, '');
+    if (allowedOrigins.includes(normalized)) return true;
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(normalized)) return true;
+    if (/\.onrender\.com$/.test(normalized) || /\.vercel\.app$/.test(normalized)) return true;
+    return false;
+  };
 
   io = new SocketIOServer(httpServer, {
     cors: {
       origin: (origin, callback) => {
-        if (!origin) return callback(null, true);
-        const normalizedOrigin = origin.replace(/\/+$/, '');
-        if (allowedOrigins.includes(normalizedOrigin)) {
+        if (!origin || isAllowedOrigin(origin)) {
           return callback(null, true);
         }
-        if (process.env.NODE_ENV !== 'production' && origin.startsWith('http://localhost:')) {
-          return callback(null, true);
-        }
-        return callback(new Error(`Socket CORS Error: Origin '${origin}' is not authorized.`));
+        return callback(null, false);
       },
       credentials: true,
       methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],

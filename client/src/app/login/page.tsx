@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Trophy, Mail, Lock, LogIn, Sparkles } from 'lucide-react';
+import { Trophy, Mail, Lock, LogIn } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -30,12 +30,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleDemoFill = (demoEmail: string, demoPass: string) => {
-    setEmail(demoEmail);
-    setPassword(demoPass);
-    showToast(`Autofilled demo credentials for ${demoEmail}`, 'info');
-  };
-
   return (
     <div className="max-w-md mx-auto py-8 sm:py-14 space-y-6 animate-fade-in">
       <div className="text-center space-y-2">
@@ -48,48 +42,6 @@ export default function LoginPage() {
         <p className="text-xs sm:text-sm text-slate-500">
           Sign in to find game partners and manage your play requests.
         </p>
-      </div>
-
-      {/* Quick Demo Credentials Box */}
-      <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 space-y-2.5">
-        <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-900">
-          <Sparkles className="w-4 h-4 text-emerald-600" />
-          <span>One-Click Demo Credentials (Instant Test)</span>
-        </div>
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <button
-            type="button"
-            onClick={() => handleDemoFill('admin@playnear.com', 'AdminPass123!')}
-            className="p-2 rounded-xl bg-white border border-emerald-300 text-emerald-900 font-semibold hover:bg-emerald-100/50 transition-colors text-left"
-          >
-            🛡️ Admin User
-            <span className="block text-[10px] font-normal text-slate-500">Full platform controls</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => handleDemoFill('organizer@playnear.com', 'OrgPass123!')}
-            className="p-2 rounded-xl bg-white border border-emerald-300 text-emerald-900 font-semibold hover:bg-emerald-100/50 transition-colors text-left"
-          >
-            🏢 Community Org
-            <span className="block text-[10px] font-normal text-slate-500">Prestige Sports Club</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => handleDemoFill('user1@playnear.com', 'UserPass123!')}
-            className="p-2 rounded-xl bg-white border border-emerald-300 text-emerald-900 font-semibold hover:bg-emerald-100/50 transition-colors text-left"
-          >
-            🏸 Player: Aarav
-            <span className="block text-[10px] font-normal text-slate-500">Indiranagar</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => handleDemoFill('user2@playnear.com', 'UserPass123!')}
-            className="p-2 rounded-xl bg-white border border-emerald-300 text-emerald-900 font-semibold hover:bg-emerald-100/50 transition-colors text-left"
-          >
-            ♟️ Player: Ananya
-            <span className="block text-[10px] font-normal text-slate-500">Koramangala</span>
-          </button>
-        </div>
       </div>
 
       {/* Main Login Form */}

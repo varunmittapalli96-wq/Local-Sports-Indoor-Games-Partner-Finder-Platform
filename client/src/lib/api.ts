@@ -26,9 +26,16 @@ export const apiFetch = async <T = any>(
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   const url = endpoint.startsWith('http') ? endpoint : `${baseUrl}${cleanEndpoint}`;
 
-  const defaultHeaders: HeadersInit = {
+  const defaultHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
   };
+
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('playnear_token');
+    if (token) {
+      defaultHeaders['Authorization'] = `Bearer ${token}`;
+    }
+  }
 
   const config: RequestInit = {
     ...options,

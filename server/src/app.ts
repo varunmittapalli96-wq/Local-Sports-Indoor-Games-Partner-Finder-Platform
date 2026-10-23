@@ -35,38 +35,35 @@ export const createApp = () => {
     })
   );
 
-  // CORS Configuration: strict origin whitelist based on CLIENT_URL
+  // CORS Configuration: flexible whitelist based on CLIENT_URL + localhost + cloud platforms
   const clientUrlEnv = process.env.CLIENT_URL || '';
   const allowedOrigins = clientUrlEnv
     .split(',')
     .map((url) => url.trim().replace(/\/+$/, ''))
     .filter(Boolean);
 
-  // In development/test, ensure localhost is permitted for convenience
-  if (process.env.NODE_ENV !== 'production') {
-    if (!allowedOrigins.includes('http://localhost:3000')) allowedOrigins.push('http://localhost:3000');
-    if (!allowedOrigins.includes('http://127.0.0.1:3000')) allowedOrigins.push('http://127.0.0.1:3000');
-  }
+  const isAllowedOrigin = (origin: string): boolean => {
+    const normalized = origin.replace(/\/+$/, '');
+    if (allowedOrigins.includes(normalized)) return true;
+    // Allow localhost and loopback (any port) for seamless local dev & testing
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(normalized)) return true;
+    // Allow Render or Vercel preview/production deployments
+    if (/\.onrender\.com$/.test(normalized) || /\.vercel\.app$/.test(normalized)) return true;
+    return false;
+  };
 
   app.use(
     cors({
       origin: (origin, callback) => {
         // Allow requests with no origin (e.g. mobile apps, curl, uptime monitors)
-        if (!origin) {
+        if (!origin || isAllowedOrigin(origin)) {
           return callback(null, true);
         }
-        const normalizedOrigin = origin.replace(/\/+$/, '');
-        if (allowedOrigins.includes(normalizedOrigin)) {
-          return callback(null, true);
-        }
-        if (process.env.NODE_ENV !== 'production' && origin.startsWith('http://localhost:')) {
-          return callback(null, true);
-        }
-        return callback(new Error(`CORS Error: Origin '${origin}' is not authorized. Must match CLIENT_URL.`));
+        return callback(null, false);
       },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
     })
   );
 
