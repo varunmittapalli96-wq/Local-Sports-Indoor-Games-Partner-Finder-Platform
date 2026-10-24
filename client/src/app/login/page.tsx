@@ -20,7 +20,7 @@ export default function LoginPage() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await login(email, password);
+      await login(email.trim(), password);
       showToast('Welcome back to PlayNear!', 'success');
       router.push('/dashboard');
     } catch (err: any) {

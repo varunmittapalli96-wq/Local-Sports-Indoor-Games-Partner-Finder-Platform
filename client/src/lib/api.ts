@@ -58,13 +58,23 @@ export const apiFetch = async <T = any>(
     }
 
     if (!res.ok) {
-      const errorMsg = data?.message || data?.error || `Request failed with status ${res.status}`;
+      let errorMsg = data?.message || data?.error;
+      if (data?.errors && Array.isArray(data.errors) && data.errors.length > 0) {
+        errorMsg = data.errors.map((e: any) => e.message || `${e.path}: ${e.message}`).join(', ');
+      }
+      if (!errorMsg) {
+        errorMsg = `Request failed with status ${res.status}`;
+      }
       throw new ApiError(errorMsg, res.status, data);
     }
 
     return data as T;
   } catch (err: any) {
     if (err instanceof ApiError) throw err;
-    throw new ApiError(err.message || 'Network error: could not connect to server', 500);
+    const isFetchFailure = err.message === 'Failed to fetch' || err.name === 'TypeError';
+    const fallbackMsg = isFetchFailure
+      ? 'Cannot connect to backend server. Please ensure the backend server is running on port 5000.'
+      : err.message || 'Network error: could not connect to server';
+    throw new ApiError(fallbackMsg, 500);
   }
 };

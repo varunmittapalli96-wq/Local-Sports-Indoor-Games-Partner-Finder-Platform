@@ -45,16 +45,16 @@ export default function RegisterPage() {
       }
 
       await register({
-        name,
-        email,
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
         password,
-        locality,
+        locality: locality.trim(),
         lat,
         lng,
         gender,
         ageGroup,
         contactPreference,
-        contactValue,
+        contactValue: contactValue.trim(),
         womenOnlyPlay,
         publicPlacesOnly,
       });
