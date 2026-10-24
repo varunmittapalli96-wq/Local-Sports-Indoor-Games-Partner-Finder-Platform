@@ -6,6 +6,7 @@ import { validateEnv } from './config/env';
 import { createApp } from './app';
 import { connectDB, disconnectDB } from './config/db';
 import { ensureDefaultGames } from './models/Game';
+import { ensureDefaultAdmin } from './models/User';
 import { sweepExpiredRequests } from './controllers/requestController';
 import { initSocket } from './services/socketService';
 
@@ -19,6 +20,9 @@ const startServer = async () => {
 
     // Ensure standard sports and indoor games are available
     await ensureDefaultGames();
+
+    // Ensure administrator account is available
+    await ensureDefaultAdmin();
 
     // Initial sweep of expired play requests
     await sweepExpiredRequests();

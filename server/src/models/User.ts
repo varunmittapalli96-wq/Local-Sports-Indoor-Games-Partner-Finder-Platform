@@ -93,3 +93,36 @@ UserSchema.index({ role: 1 });
 UserSchema.index({ status: 1 });
 
 export const User = mongoose.model<IUser>('User', UserSchema);
+
+export const ensureDefaultAdmin = async () => {
+  try {
+    const adminEmail = (process.env.ADMIN_EMAIL?.trim() || 'admin@playnear.com').toLowerCase();
+    const adminPassword = process.env.ADMIN_PASSWORD || 'AdminPass123!';
+    const existing = await User.findOne({ email: adminEmail });
+    if (!existing) {
+      console.log(`[Database] No admin found. Auto-creating default admin account (${adminEmail})...`);
+      const bcrypt = await import('bcryptjs');
+      const passwordHash = await bcrypt.default.hash(adminPassword, 10);
+      await User.create({
+        name: 'PlayNear Admin',
+        email: adminEmail,
+        passwordHash,
+        role: 'admin',
+        gender: 'prefer-not-to-say',
+        ageGroup: '25-34',
+        locality: 'Indiranagar',
+        location: { type: 'Point', coordinates: [77.6408, 12.9784] },
+        contactPreference: 'email',
+        contactValue: adminEmail,
+        playingLocations: ['clubhouse', 'ground'],
+        primaryVenue: 'Indiranagar Club',
+        emailVerified: true,
+        status: 'active',
+        bio: 'Platform Administrator and community recreation advocate.',
+      });
+      console.log('[Database] Default admin account created successfully.');
+    }
+  } catch (err: any) {
+    console.error('[Database] Error ensuring default admin:', err.message);
+  }
+};
