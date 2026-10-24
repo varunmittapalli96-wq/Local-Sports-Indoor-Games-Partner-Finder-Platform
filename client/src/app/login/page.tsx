@@ -20,9 +20,13 @@ export default function LoginPage() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await login(email.trim(), password);
+      const loggedUser = await login(email.trim(), password);
       showToast('Welcome back to PlayNear!', 'success');
-      router.push('/dashboard');
+      if (loggedUser?.role === 'admin') {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err: any) {
       showToast(err.message || 'Invalid email or password', 'error');
     } finally {

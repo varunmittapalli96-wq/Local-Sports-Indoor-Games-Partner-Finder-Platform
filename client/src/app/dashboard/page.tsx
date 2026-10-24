@@ -133,6 +133,31 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8 animate-fade-in pb-12">
+      {/* Admin Executive Alert Banner */}
+      {user.role === 'admin' && (
+        <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-purple-900 via-indigo-950 to-slate-900 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-5 border border-purple-500/30">
+          <div className="space-y-1.5 max-w-2xl">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-500/30 text-purple-200 border border-purple-400/40">
+              <Shield className="w-3.5 h-3.5 text-purple-300" />
+              <span>Executive Platform Administrator Active</span>
+            </div>
+            <h2 className="text-lg sm:text-xl font-extrabold tracking-tight">
+              Manage User Accounts, Platform Moderation & Safety
+            </h2>
+            <p className="text-xs sm:text-sm text-purple-200/80 leading-relaxed">
+              You are signed in with master administrative authority. Access the Admin Suite to manage all registered user accounts, suspend or reactivate members, verify sports communities, and inspect platform KPIs.
+            </p>
+          </div>
+          <Link
+            href="/admin"
+            className="flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-white hover:bg-purple-50 text-purple-950 font-extrabold text-sm shadow-lg hover:scale-105 transition-all shrink-0"
+          >
+            <Shield className="w-4 h-4 text-purple-700" />
+            Open Admin Suite →
+          </Link>
+        </div>
+      )}
+
       {/* Welcome Banner */}
       <div className="glass-panel p-6 sm:p-8 rounded-3xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="space-y-2 max-w-xl">

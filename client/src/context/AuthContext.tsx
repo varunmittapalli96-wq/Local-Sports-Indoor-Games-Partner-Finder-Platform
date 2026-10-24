@@ -33,7 +33,7 @@ export interface UserProfile {
 interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<UserProfile | null>;
   register: (data: any) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -65,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     refreshUser();
   }, [refreshUser]);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<UserProfile | null> => {
     const res = await apiFetch<{ success: boolean; user: UserProfile; token?: string }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
@@ -76,7 +76,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       setUser(res.user);
       await refreshUser(); // Load full profile including games & availability
+      return res.user;
     }
+    return null;
   };
 
   const register = async (data: any) => {

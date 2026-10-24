@@ -96,6 +96,20 @@ export const Navbar: React.FC = () => {
               </Link>
             );
           })}
+
+          {user && user.role === 'admin' && (
+            <Link
+              href="/admin"
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold transition-all shadow-xs ${
+                pathname === '/admin'
+                  ? 'bg-purple-600 text-white shadow-md'
+                  : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200'
+              }`}
+            >
+              <ShieldCheck className={`w-4 h-4 ${pathname === '/admin' ? 'text-white' : 'text-purple-600'}`} />
+              Admin Control Suite
+            </Link>
+          )}
         </nav>
 
         {/* Right Action Icons & User Dropdown */}
@@ -129,7 +143,7 @@ export const Navbar: React.FC = () => {
                   className="flex items-center gap-2.5 p-1.5 rounded-full hover:ring-2 hover:ring-emerald-400/40 transition-all text-left"
                   aria-expanded={userDropdownOpen}
                 >
-                  <div className="w-8 h-8 rounded-full gradient-sports flex items-center justify-center text-white text-xs font-semibold overflow-hidden border border-emerald-400">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold overflow-hidden border ${user.role === 'admin' ? 'bg-purple-700 border-purple-400' : 'gradient-sports border-emerald-400'}`}>
                     {user.photo ? (
                       <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />
                     ) : (
@@ -138,7 +152,9 @@ export const Navbar: React.FC = () => {
                   </div>
                   <div className="hidden lg:flex flex-col">
                     <span className="text-xs font-semibold text-slate-800 leading-tight">{user.name}</span>
-                    <span className="text-[11px] text-slate-500 leading-none">{user.locality || 'Player'}</span>
+                    <span className={`text-[11px] leading-none ${user.role === 'admin' ? 'text-purple-700 font-bold' : 'text-slate-500'}`}>
+                      {user.role === 'admin' ? '🛡️ Administrator' : (user.locality || 'Player')}
+                    </span>
                   </div>
                 </button>
 
