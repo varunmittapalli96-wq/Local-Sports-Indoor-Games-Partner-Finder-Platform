@@ -5,6 +5,7 @@ import http from 'http';
 import { validateEnv } from './config/env';
 import { createApp } from './app';
 import { connectDB, disconnectDB } from './config/db';
+import { ensureDefaultGames } from './models/Game';
 import { sweepExpiredRequests } from './controllers/requestController';
 import { initSocket } from './services/socketService';
 
@@ -15,6 +16,9 @@ const startServer = async () => {
   try {
     // Connect to MongoDB Atlas or local MongoDB
     await connectDB(env.MONGODB_URI);
+
+    // Ensure standard sports and indoor games are available
+    await ensureDefaultGames();
 
     // Initial sweep of expired play requests
     await sweepExpiredRequests();

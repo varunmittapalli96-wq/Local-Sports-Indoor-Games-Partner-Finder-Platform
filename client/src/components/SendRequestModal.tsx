@@ -45,11 +45,9 @@ export const SendRequestModal: React.FC<SendRequestModalProps> = ({
         if (res.success && res.games.length > 0) {
           setAllGames(res.games);
           // If player has a preferred game, auto-select it
-          if (targetPlayer?.games && targetPlayer.games.length > 0) {
-            setSelectedGameId(targetPlayer.games[0].gameId);
-          } else {
-            setSelectedGameId(res.games[0]._id);
-          }
+          const preferredId = targetPlayer?.games?.[0]?.gameId || (targetPlayer?.games?.[0] as any)?.game?._id;
+          const exists = preferredId && res.games.some((g) => g._id === preferredId);
+          setSelectedGameId(exists ? preferredId : res.games[0]._id);
         }
       })
       .catch(() => {});
@@ -146,11 +144,15 @@ export const SendRequestModal: React.FC<SendRequestModalProps> = ({
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 font-medium"
               required
             >
-              {allGames.map((g) => (
-                <option key={g._id} value={g._id}>
-                  {g.name} ({g.category})
-                </option>
-              ))}
+              {allGames.length === 0 ? (
+                <option value="">No games found</option>
+              ) : (
+                allGames.map((g) => (
+                  <option key={g._id} value={g._id}>
+                    {g.name} ({g.category})
+                  </option>
+                ))
+              )}
             </select>
           </div>
 
